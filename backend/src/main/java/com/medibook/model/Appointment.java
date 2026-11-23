@@ -2,18 +2,21 @@ package com.medibook.model;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "appointments")
+@Entity
+@Table(name = "appointments")
+@EntityListeners(AuditingEntityListener.class)
 public class Appointment {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String patientId;
@@ -30,11 +33,13 @@ public class Appointment {
     private String symptoms;
     private String notes;
 
+    @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
     private String cancelReason;
     private String meetingLink;
 
+    @Enumerated(EnumType.STRING)
     private AppointmentType type = AppointmentType.IN_PERSON;
 
     private double consultationFee;

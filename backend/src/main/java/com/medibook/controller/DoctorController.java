@@ -2,6 +2,7 @@ package com.medibook.controller;
 
 import com.medibook.model.Doctor;
 import com.medibook.model.Review;
+import com.medibook.dto.DoctorSummaryDTO;
 import com.medibook.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class DoctorController {
     // ── Public endpoints (no auth required) ──────────────────────────────
 
     @GetMapping("/public/all")
-    public ResponseEntity<List<Doctor>> getAllDoctors(
+    public ResponseEntity<List<DoctorSummaryDTO>> getAllDoctors(
             @RequestParam(required = false) String specialty,
             @RequestParam(required = false) String q,
             @RequestParam(required = false, defaultValue = "false") boolean availableOnly) {
@@ -28,7 +29,7 @@ public class DoctorController {
     }
 
     @GetMapping("/public/search")
-    public ResponseEntity<List<Doctor>> searchDoctors(@RequestParam(required = false) String q) {
+    public ResponseEntity<List<DoctorSummaryDTO>> searchDoctors(@RequestParam(required = false) String q) {
         return ResponseEntity.ok(doctorService.searchDoctors(q, null, false));
     }
 
@@ -93,7 +94,17 @@ public class DoctorController {
 
     // Admin: get ALL doctors (including unavailable)
     @GetMapping("/admin/all")
-    public ResponseEntity<List<Doctor>> getAllDoctorsAdmin() {
+    public ResponseEntity<List<DoctorSummaryDTO>> getAllDoctorsAdmin() {
         return ResponseEntity.ok(doctorService.getAllDoctors());
+    }
+
+    @PutMapping("/admin/approve/{id}")
+    public ResponseEntity<Doctor> approveDoctor(@PathVariable String id) {
+        return ResponseEntity.ok(doctorService.approveDoctor(id));
+    }
+
+    @PutMapping("/admin/reject/{id}")
+    public ResponseEntity<Doctor> rejectDoctor(@PathVariable String id, @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(doctorService.rejectDoctor(id, body.get("reason")));
     }
 }

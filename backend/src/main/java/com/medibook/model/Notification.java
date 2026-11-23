@@ -2,18 +2,21 @@ package com.medibook.model;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "notifications")
+@Entity
+@Table(name = "notifications")
+@EntityListeners(AuditingEntityListener.class)
 public class Notification {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String userId;
@@ -22,6 +25,7 @@ public class Notification {
     private String type; // APPOINTMENT_CONFIRMED, APPOINTMENT_CANCELLED, REMINDER, etc.
     private String appointmentId;
 
+    @Column(name = "is_read")
     private boolean read = false;
 
     @CreatedDate
@@ -52,7 +56,8 @@ public class Notification {
 
     public static class NotificationBuilder {
         private String id, userId, title, message, type, appointmentId;
-        private boolean read = false;
+        @Column(name = "is_read")
+    private boolean read = false;
         private LocalDateTime createdAt;
 
         public NotificationBuilder id(String id) { this.id = id; return this; }

@@ -15,6 +15,9 @@ export default function DoctorSettings({ doctor, onUpdate }) {
   // Career fields
   const [photoPreview, setPhotoPreview] = useState(doctor.profileImage || null);
   const [photoBase64, setPhotoBase64] = useState(null);
+  const [phone, setPhone] = useState(doctor.phone || '');
+  const [qualification, setQualification] = useState(doctor.qualification || '');
+  const [experienceYears, setExperienceYears] = useState(doctor.experienceYears || 0);
   const [workExp, setWorkExp] = useState(doctor.workExperience || []);
   const [documents, setDocuments] = useState(doctor.documents || []);
   const [availableTypes, setAvailableTypes] = useState(doctor.availableTypes || ['In-Person']);
@@ -32,9 +35,18 @@ export default function DoctorSettings({ doctor, onUpdate }) {
   const updateExp = (i, field, val) => { const n = [...workExp]; n[i][field] = val; setWorkExp(n); };
   const removeExp = i => setWorkExp(workExp.filter((_,idx)=>idx!==i));
 
-  const addDocument = () => setDocuments([...documents, { name: '', type: 'certificate', year: '' }]);
+  const addDocument = () => setDocuments([...documents, { name: '', type: 'certificate', year: '', fileData: '' }]);
   const updateDoc = (i, field, val) => { const n = [...documents]; n[i][field] = val; setDocuments(n); };
   const removeDoc = i => setDocuments(documents.filter((_,idx)=>idx!==i));
+
+  const handleDocUpload = (i, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('File must be under 5MB'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => { updateDoc(i, 'fileData', ev.target.result); };
+    reader.readAsDataURL(file);
+  };
 
   const toggleType = t => setAvailableTypes(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t]);
 
@@ -47,6 +59,9 @@ export default function DoctorSettings({ doctor, onUpdate }) {
     try {
       const payload = {
         ...doctor,
+        phone,
+        qualification,
+        experienceYears: Number(experienceYears),
         availableDays,
         timeSlots,
         leaveDates,
@@ -70,6 +85,16 @@ export default function DoctorSettings({ doctor, onUpdate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Approval Alert */}
+      {!doctor.approved && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, padding: 16, display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <div style={{ fontSize: 24 }}>⚠️</div>
+          <div>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>Profile Pending Verification</h3>
+            <p style={{ fontSize: 13, color: '#b45309', lineHeight: 1.5 }}>Your profile is awaiting an administrator's review. Add or update your professional details and supporting documents to help the administrator make an informed decision.</p>
+          </div>
+        </div>
+      )}
       {/* Tab switcher */}
       <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', padding: 5, borderRadius: 12, width: 'fit-content' }}>
         {[{k:'schedule',l:'📅 Schedule'},{k:'career',l:'💼 Career & Photo'},{k:'documents',l:'📄 Documents'}].map(t=>(
@@ -172,6 +197,27 @@ export default function DoctorSettings({ doctor, onUpdate }) {
                 <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 6 }}>JPG, PNG. Max 2MB. Square photo recommended.</p>
               </div>
             </div>
+            
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid #e2e8f0' }}>
+              <div className="form-group">
+                <label className="form-label">Phone Number (For verification)</label>
+                <input type="text" className="form-input" placeholder="Enter your phone number" value={phone} onChange={e => setPhone(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontWeight: 700, marginBottom: 14, fontSize: 15 }}>Professional Details</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+              <div className="form-group">
+                <label className="form-label">Qualification</label>
+                <input className="form-input" placeholder="e.g. MBBS, MD (Cardiology)" value={qualification} onChange={e => setQualification(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Years of Experience</label>
+                <input type="number" min="1" className="form-input" value={experienceYears} onChange={e => setExperienceYears(e.target.value)} />
+              </div>
+            </div>
           </div>
 
           {/* Work Experience */}
@@ -233,7 +279,7 @@ export default function DoctorSettings({ doctor, onUpdate }) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {documents.map((doc, i) => (
-                <div key={i} style={{ background: '#f8fafc', borderRadius: 12, padding: 14, border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 140px 90px 36px', gap: 10, alignItems: 'center' }}>
+                <div key={i} style={{ background: '#f8fafc', borderRadius: 12, padding: 14, border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 140px 90px 110px 36px', gap: 10, alignItems: 'center' }}>
                   <div className="form-group" style={{ margin: 0 }}>
                     <input className="form-input" placeholder="e.g. MBBS - AIIMS Delhi" value={doc.name} onChange={e=>updateDoc(i,'name',e.target.value)} />
                   </div>
@@ -244,6 +290,10 @@ export default function DoctorSettings({ doctor, onUpdate }) {
                     <option value="other">Other</option>
                   </select>
                   <input className="form-input" placeholder="Year" value={doc.year} onChange={e=>updateDoc(i,'year',e.target.value)} />
+                  <label className="btn btn-outline" style={{ padding: '8px', fontSize: 12, cursor: 'pointer', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: doc.fileData ? '#d1fae5' : '#fff', color: doc.fileData ? '#065f46' : '#0ea5e9', borderColor: doc.fileData ? '#34d399' : '#0ea5e9' }}>
+                    {doc.fileData ? 'File added ✅' : '📎 Upload'}
+                    <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={e => handleDocUpload(i, e)} />
+                  </label>
                   <button onClick={()=>removeDoc(i)} style={{ background: '#fee2e2', border: 'none', borderRadius: 8, width: 36, height: 36, cursor: 'pointer', color: '#dc2626', fontSize: 14 }}>🗑</button>
                 </div>
               ))}

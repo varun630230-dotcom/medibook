@@ -43,7 +43,9 @@ export const doctorAPI = {
   addReview:      (id, data)      => api.post(`/doctors/${id}/reviews`, data),
   deleteDoctor:   (id)            => api.delete(`/doctors/${id}`),
   // Admin
-  getAllAdmin:     ()              => api.get('/doctors/admin/all'),
+  getAllAdmin:    ()              => api.get('/doctors/admin/all'),
+  approve:        (id)            => api.put(`/doctors/admin/approve/${id}`),
+  reject:         (id, reason)    => api.put(`/doctors/admin/reject/${id}`, { reason }),
 };
 
 export const appointmentAPI = {

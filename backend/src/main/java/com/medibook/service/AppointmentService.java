@@ -24,6 +24,7 @@ public class AppointmentService {
     @Autowired private DoctorRepository doctorRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private NotificationService notificationService;
+    @Autowired private EmailService emailService;
 
     public Appointment bookAppointment(String patientId, AppointmentDTO.CreateRequest request) {
         User patient = userRepository.findById(patientId)
@@ -85,6 +86,9 @@ public class AppointmentService {
                             request.getAppointmentDate() + " at " + request.getAppointmentTime(),
                     "NEW_APPOINTMENT", appointment.getId());
         }
+
+        // Send Email Confirmation
+        emailService.sendAppointmentConfirmation(appointment);
 
         return appointment;
     }

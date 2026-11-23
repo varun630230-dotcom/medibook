@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
+import LandingPage from "./pages/Landing";
 import Login from './pages/Login';
 import Register from './pages/Register';
 import PatientDashboard from './pages/PatientDashboard';
@@ -24,6 +24,28 @@ const ProtectedRoute = ({ children, roles }) => {
   return children;
 };
 
+const HomeRedirect = ({ user }) => {
+  if (user.role === 'DOCTOR') return <Navigate to="/doctor-dashboard" replace />;
+  if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
+  
+  if (user.role === 'PATIENT') {
+    const redirectUrl = sessionStorage.getItem('searchRedirect');
+    if (redirectUrl) {
+      sessionStorage.removeItem('searchRedirect');
+      return <Navigate to={redirectUrl} replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return (
+    <div style={{ padding: 40, textAlign: 'center' }}>
+      <h2>Account Error</h2>
+      <p>Your account role is invalid. Please log out and try again.</p>
+      <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} className="btn btn-primary">Log Out</button>
+    </div>
+  );
+};
+
 const AppRoutes = () => {
   const { user } = useAuth();
 
@@ -32,17 +54,7 @@ const AppRoutes = () => {
       {user && <Navbar />}
       {user && <AIAssistant />}
       <Routes>
-        <Route path="/" element={user ? (
-          user.role === 'DOCTOR' ? <Navigate to="/doctor-dashboard" /> :
-            user.role === 'ADMIN' ? <Navigate to="/admin" /> :
-              user.role === 'PATIENT' ? <Navigate to="/dashboard" /> :
-                <div style={{ padding: 40, textAlign: 'center' }}>
-                  <h2>Account Error</h2>
-                  <p>Your account role is invalid. Please log out and try again.</p>
-                  <button onClick={() => { localStorage.clear(); window.location.href = '/login'; }} className="btn btn-primary">Log Out</button>
-                </div>
-        ) : <DoctorConsultation />} />
-
+        <Route path="/" element={user ? <HomeRedirect user={user} /> : <LandingPage />} />
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
         <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
 

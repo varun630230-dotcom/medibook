@@ -2,26 +2,28 @@ package com.medibook.model;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
+@Entity
+@Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String firstName;
     private String lastName;
 
-    @Indexed(unique = true)
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -32,6 +34,7 @@ public class User {
     private String address;
     private String profileImage;
 
+    @Enumerated(EnumType.STRING)
     private Role role = Role.PATIENT;
     private boolean active = true;
 

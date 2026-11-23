@@ -1,203 +1,332 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Search, MapPin, Star, Zap, ShieldCheck, Video, Bell, Clock, Users, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const specialties = [
-  { icon: '🧠', name: 'Neurology',    color: '#8b5cf6', bg: '#ede9fe' },
-  { icon: '❤️', name: 'Cardiology',   color: '#ef4444', bg: '#fee2e2' },
-  { icon: '🦷', name: 'Dentistry',    color: '#3b82f6', bg: '#dbeafe' },
-  { icon: '👁️', name: 'Ophthalmology',color: '#0ea5e9', bg: '#e0f2fe' },
-  { icon: '🦴', name: 'Orthopedics',  color: '#f59e0b', bg: '#fef3c7' },
-  { icon: '🧒', name: 'Pediatrics',   color: '#10b981', bg: '#d1fae5' },
-  { icon: '🩺', name: 'General',      color: '#6366f1', bg: '#ede9fe' },
-  { icon: '🧬', name: 'Dermatology',  color: '#ec4899', bg: '#fce7f3' },
+const doctors = [
+  {
+    name: "Dr. Rajesh Sharma",
+    specialty: "Cardiologist",
+    rating: 4.9,
+    reviews: 128,
+    experience: "15+ years exp.",
+    hospital: "Apollo Hospitals, Hyderabad",
+    available: "Available Today • 10:00 AM",
+    availableColor: "#16a34a",
+    avatarBg: "linear-gradient(135deg, #e0e7ff, #c7d2fe)",
+    avatarText: "#4f46e5",
+  },
+  {
+    name: "Dr. Priya Patel",
+    specialty: "Dermatologist",
+    rating: 4.8,
+    reviews: 95,
+    experience: "8+ years exp.",
+    hospital: "Care Skin Clinic, Banjara Hills",
+    available: "Available Today • 2:30 PM",
+    availableColor: "#16a34a",
+    avatarBg: "linear-gradient(135deg, #fce7f3, #fbcfe8)",
+    avatarText: "#db2777",
+  },
+  {
+    name: "Dr. Amit Kumar",
+    specialty: "Orthopedic Surgeon..",
+    rating: 4.9,
+    reviews: 156,
+    experience: "12+ years exp.",
+    hospital: "Yashoda Hospitals, Somajiguda",
+    available: "Available Tomorrow • 11:00 AM",
+    availableColor: "#16a34a",
+    avatarBg: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
+    avatarText: "#059669",
+  },
+  {
+    name: "Dr. Sneha Reddy",
+    specialty: "Gynecologist",
+    rating: 4.7,
+    reviews: 89,
+    experience: "10+ years exp.",
+    hospital: "Rainbow Children's Hospital",
+    available: "Available Today • 4:00 PM",
+    availableColor: "#16a34a",
+    avatarBg: "linear-gradient(135deg, #fef3c7, #fde68a)",
+    avatarText: "#d97706",
+  },
 ];
 
-const steps = [
-  { icon: '🔍', step: '01', title: 'Find a Doctor', desc: 'Search by specialty, name, or hospital. View ratings and real-time availability.' },
-  { icon: '📅', step: '02', title: 'Book a Slot',   desc: 'Choose your preferred date, time, and consultation type — Video, In-Person, or Phone.' },
-  { icon: '✅', step: '03', title: 'Get Care',      desc: 'Attend your appointment and receive expert medical guidance with ease.' },
-];
+const popularTags = ["Cardiologist", "Dermatologist", "Pediatrician", "Gynecologist", "Orthopedic"];
 
-function AnimatedNumber({ target }) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    let start = 0; const step = target / 60;
-    const t = setInterval(() => { start += step; if (start >= target) { setValue(target); clearInterval(t); } else setValue(Math.floor(start)); }, 16);
-    return () => clearInterval(t);
-  }, [target]);
-  return value.toLocaleString();
-}
+export default function LandingPage() {
+  const navigate = useNavigate();
+  const [searchDoctor, setSearchDoctor] = useState("");
+  const [searchSpec, setSearchSpec] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
 
-export default function Landing() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', fn); return () => window.removeEventListener('scroll', fn);
-  }, []);
+  const handleFindDoctors = () => {
+    sessionStorage.setItem('searchRedirect', `/doctors?q=${searchDoctor}&specialty=${searchSpec}`);
+    navigate("/login");
+  };
 
   return (
-    <div style={{ fontFamily: 'DM Sans, sans-serif', background: '#fff', overflowX: 'hidden' }}>
-      {/* NAV */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: scrolled ? 'rgba(255,255,255,.97)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
-        borderBottom: scrolled ? '1.5px solid #e2e8f0' : '1.5px solid transparent',
-        padding: '0 48px', height: 68,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        transition: 'all .3s',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 3px 10px rgba(3,105,161,.3)' }}>🏥</div>
-          <span style={{ fontFamily: 'Playfair Display, serif', fontWeight: 800, fontSize: 21, color: '#0f172a' }}>Medi<span style={{ color: '#0ea5e9' }}>Book</span></span>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <Link to="/login" style={{ padding: '9px 20px', borderRadius: 10, fontWeight: 600, fontSize: 14, textDecoration: 'none', color: '#334155', transition: 'all .2s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            Sign In
-          </Link>
-          <Link to="/register" style={{ padding: '9px 22px', borderRadius: 10, fontWeight: 700, fontSize: 14, textDecoration: 'none', color: '#fff', background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', boxShadow: '0 3px 12px rgba(3,105,161,.35)', transition: 'all .2s' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(3,105,161,.45)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 3px 12px rgba(3,105,161,.35)'; }}>
-            Get Started →
-          </Link>
+    <div className="landing-page">
+      {/* ═══ NAVBAR ═══ */}
+      <nav className="landing-nav">
+        <div className="landing-nav-inner">
+          <div className="landing-nav-brand" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+            <div className="landing-logo-icon">
+              <span style={{ color: "#fff", fontWeight: 800, fontSize: 18 }}>+</span>
+            </div>
+            <span className="landing-logo-text">MediCare<span className="landing-logo-plus">+</span></span>
+          </div>
+
+          <div className="landing-nav-links">
+            <a href="#hero" className="landing-nav-link active">Home</a>
+            <a href="#doctors" className="landing-nav-link" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Find Doctors</a>
+            <a href="#features" className="landing-nav-link">Specializations</a>
+            <a href="#features" className="landing-nav-link">How it Works</a>
+            <a href="#cta" className="landing-nav-link">Contact</a>
+          </div>
+
+          <div className="landing-nav-actions">
+            <button className="landing-btn-login" onClick={() => navigate("/login")}>Login</button>
+            <button className="landing-btn-create" onClick={() => navigate("/register")}>Create Account</button>
+          </div>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 24px 60px', background: 'linear-gradient(160deg,#f0f9ff 0%,#ffffff 40%,#f0fdf4 100%)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '8%', left: '4%', width: 520, height: 520, background: 'radial-gradient(circle,rgba(14,165,233,.08) 0%,transparent 70%)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', bottom: '4%', right: '4%', width: 400, height: 400, background: 'radial-gradient(circle,rgba(16,185,129,.07) 0%,transparent 70%)', borderRadius: '50%' }} />
+      {/* ═══ HERO ═══ */}
+      <section id="hero" className="landing-hero">
+        <div className="landing-hero-bg">
+          <img src="/hero-bg.png" alt="Doctors" className="landing-hero-bg-img" />
+          <div className="landing-hero-overlay"></div>
         </div>
-        <div style={{ position: 'relative', maxWidth: 740, margin: '0 auto', animation: 'fadeInUp .7s ease both' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#e0f2fe', color: '#0369a1', padding: '6px 16px', borderRadius: 9999, fontSize: 13, fontWeight: 700, marginBottom: 28, border: '1px solid #bae6fd' }}>
-            🩺 Trusted by 10,000+ patients across India
+        <div className="landing-hero-content">
+          <div className="landing-trust-badge">
+            <Star size={14} style={{ color: "#2563eb", fill: "#2563eb" }} />
+            <span>Trusted by 50,000+ Patients Across India</span>
           </div>
-          <h1 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 800, lineHeight: 1.1, fontSize: 'clamp(42px, 6.5vw, 76px)', color: '#0f172a', marginBottom: 22, letterSpacing: '-.02em' }}>
-            Book Doctors<br />
-            <span style={{ background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>with Confidence</span>
-          </h1>
-          <p style={{ fontSize: 17, color: '#64748b', lineHeight: 1.75, marginBottom: 44, maxWidth: 520, margin: '0 auto 44px' }}>
-            Find and book appointments with top-rated specialists. Fast confirmation, zero hassle — from home.
+          <h1 className="landing-hero-title">Book Doctor Appointments</h1>
+          <h2 className="landing-hero-subtitle">Fast & Hassle-Free</h2>
+          <p className="landing-hero-desc">
+            Consult with verified doctors online or in-clinic.<br />
+            Available 24/7 • All Specializations • Instant Booking
           </p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/register" style={{ padding: '14px 36px', borderRadius: 14, fontWeight: 700, fontSize: 15, textDecoration: 'none', color: '#fff', background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', boxShadow: '0 6px 24px rgba(3,105,161,.4)', transition: 'all .2s' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(3,105,161,.5)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(3,105,161,.4)'; }}>
-              Book Appointment →
-            </Link>
-            <Link to="/login" style={{ padding: '14px 32px', borderRadius: 14, fontWeight: 600, fontSize: 15, textDecoration: 'none', color: '#334155', background: '#fff', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,.05)', transition: 'all .2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.color = '#0369a1'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#334155'; }}>
-              Sign In
-            </Link>
+
+          {/* Search Bar */}
+          <div className="landing-search-bar">
+            <div className="landing-search-field">
+              <Search size={16} style={{ color: "#94a3b8" }} />
+              <input
+                type="text"
+                placeholder="Search doctors, specialties..."
+                value={searchDoctor}
+                onChange={(e) => setSearchDoctor(e.target.value)}
+              />
+            </div>
+            <div className="landing-search-divider"></div>
+            <div className="landing-search-field">
+              <select
+                value={searchSpec}
+                onChange={(e) => setSearchSpec(e.target.value)}
+                className="landing-search-select"
+              >
+                <option value="">All Specializations</option>
+                <option value="cardiologist">Cardiologist</option>
+                <option value="dermatologist">Dermatologist</option>
+                <option value="pediatrician">Pediatrician</option>
+                <option value="gynecologist">Gynecologist</option>
+                <option value="orthopedic">Orthopedic</option>
+              </select>
+            </div>
+            <button className="landing-search-btn" onClick={handleFindDoctors}>
+              <Search size={16} /> Find Doctors Now
+            </button>
           </div>
-          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginTop: 48, flexWrap: 'wrap' }}>
-            {['✅ Verified Doctors', '🔒 Secure & Private', '⚡ Instant Confirmation'].map(t => (
-              <div key={t} style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>{t}</div>
+
+          {/* Popular Tags */}
+          <div className="landing-popular-tags">
+            <span className="landing-popular-label">Popular:</span>
+            {popularTags.map((tag) => (
+              <span key={tag} className="landing-tag" onClick={() => {
+                sessionStorage.setItem('searchRedirect', `/doctors?specialty=${tag.toLowerCase()}`);
+                navigate("/login");
+              }}>{tag}</span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <section style={{ padding: '52px 48px', background: 'linear-gradient(135deg,#0369a1,#0ea5e9)' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32 }}>
-          {[{n:500,s:'+',l:'Expert Doctors'},{n:10000,s:'+',l:'Patients Served'},{n:50,s:'+',l:'Specialties'},{n:98,s:'%',l:'Satisfaction'}].map(s => (
-            <div key={s.l} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 44, fontWeight: 800, color: '#fff', lineHeight: 1 }}><AnimatedNumber target={s.n} />{s.s}</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,.75)', marginTop: 6, fontWeight: 500 }}>{s.l}</div>
+      {/* ═══ STATS ═══ */}
+      <section className="landing-stats-section">
+        <div className="landing-stats-bar">
+          <div className="landing-stat">
+            <div className="landing-stat-icon" style={{ background: "#dbeafe" }}>
+              <Users size={20} style={{ color: "#2563eb" }} />
+            </div>
+            <div>
+              <h3 className="landing-stat-value">50,000+</h3>
+              <p className="landing-stat-label">Happy Patients</p>
+            </div>
+          </div>
+          <div className="landing-stat">
+            <div className="landing-stat-icon" style={{ background: "#dbeafe" }}>
+              <ShieldCheck size={20} style={{ color: "#2563eb" }} />
+            </div>
+            <div>
+              <h3 className="landing-stat-value">1,200+</h3>
+              <p className="landing-stat-label">Verified Doctors</p>
+            </div>
+          </div>
+          <div className="landing-stat">
+            <div className="landing-stat-icon" style={{ background: "#dbeafe" }}>
+              <Clock size={20} style={{ color: "#2563eb" }} />
+            </div>
+            <div>
+              <h3 className="landing-stat-value">24/7</h3>
+              <p className="landing-stat-label">Available Support</p>
+            </div>
+          </div>
+          <div className="landing-stat">
+            <div className="landing-stat-icon" style={{ background: "#fef3c7" }}>
+              <Star size={20} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
+            </div>
+            <div>
+              <h3 className="landing-stat-value">4.8/5</h3>
+              <p className="landing-stat-label">Patient Rating</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ WHY CHOOSE ═══ */}
+      <section id="features" className="landing-features-section">
+        <h2 className="landing-section-title">Why Choose MediCare+?</h2>
+        <p className="landing-section-subtitle">Experience healthcare the modern way</p>
+        <div className="landing-features-grid">
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon" style={{ background: "#eff6ff" }}>
+              <Zap size={24} style={{ color: "#2563eb" }} />
+            </div>
+            <h3>Instant Booking</h3>
+            <p>Book appointments in under 2 minutes. No calls, no waiting.</p>
+          </div>
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon" style={{ background: "#ecfdf5" }}>
+              <ShieldCheck size={24} style={{ color: "#16a34a" }} />
+            </div>
+            <h3>Verified Doctors</h3>
+            <p>All doctors are MBBS certified with 5+ years experience minimum.</p>
+          </div>
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon" style={{ background: "#eff6ff" }}>
+              <Video size={24} style={{ color: "#2563eb" }} />
+            </div>
+            <h3>Video Consultation</h3>
+            <p>Consult from home via secure HD video call at your convenience.</p>
+          </div>
+          <div className="landing-feature-card">
+            <div className="landing-feature-icon" style={{ background: "#fef3c7" }}>
+              <Bell size={24} style={{ color: "#f59e0b" }} />
+            </div>
+            <h3>Smart Reminders</h3>
+            <p>Never miss an appointment with SMS & WhatsApp notifications.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TOP DOCTORS ═══ */}
+      <section id="doctors" className="landing-doctors-section">
+        <div className="landing-doctors-header">
+          <span style={{ fontSize: 22 }}>🏆</span>
+          <h2 className="landing-section-title" style={{ marginBottom: 0 }}>Top Doctors This Week</h2>
+        </div>
+        <p className="landing-section-subtitle">Highly rated doctors available for consultation</p>
+
+        <div className="landing-doctors-grid">
+          {doctors.map((doc, i) => (
+            <div key={i} className="landing-doctor-card">
+              <div className="landing-doctor-card-top">
+                <div 
+                  style={{
+                    width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+                    background: doc.avatarBg, color: doc.avatarText,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 20, fontWeight: 800, textTransform: 'uppercase'
+                  }}
+                >
+                  {doc.name.split(" ")[1]?.[0]}{doc.name.split(" ")[2]?.[0] || ""}
+                </div>
+                <div className="landing-doctor-info">
+                  <div className="landing-doctor-name-row">
+                    <h4>{doc.name}</h4>
+                    <ShieldCheck size={14} style={{ color: "#2563eb" }} />
+                  </div>
+                  <p className="landing-doctor-spec">{doc.specialty}</p>
+                  <div className="landing-doctor-rating">
+                    <Star size={13} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
+                    <span className="landing-rating-value">{doc.rating}</span>
+                    <span className="landing-rating-count">({doc.reviews} reviews)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="landing-doctor-card-bottom">
+                <div className="landing-doctor-detail">
+                  <Star size={13} style={{ color: "#f59e0b" }} />
+                  <span>{doc.experience}</span>
+                </div>
+                <div className="landing-doctor-detail">
+                  <MapPin size={13} style={{ color: "#94a3b8" }} />
+                  <span>{doc.hospital}</span>
+                </div>
+                <div className="landing-doctor-available" style={{ color: doc.availableColor }}>
+                  <span className="landing-avail-dot" style={{ background: doc.availableColor }}></span>
+                  {doc.available}
+                </div>
+              </div>
             </div>
           ))}
         </div>
+
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <button className="landing-btn-outline" onClick={() => {
+            sessionStorage.setItem('searchRedirect', '/doctors');
+            navigate("/login");
+          }}>
+            View All Doctors <ChevronRight size={16} />
+          </button>
+        </div>
       </section>
 
-      {/* SPECIALTIES */}
-      <section style={{ padding: '80px 48px', background: '#f8fafc' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 10 }}>SPECIALTIES</div>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 38, fontWeight: 800, color: '#0f172a', letterSpacing: '-.02em' }}>Browse by Specialty</h2>
+      {/* ═══ CTA ═══ */}
+      <section id="cta" className="landing-cta-section">
+        <div className="landing-cta-box">
+          <div className="landing-cta-plus">+</div>
+          <h2>Ready to Book Your Appointment?</h2>
+          <p>Join 50,000+ patients who trust MediCare+ for their healthcare needs</p>
+          <div className="landing-cta-buttons">
+            <button className="landing-cta-btn-white" onClick={() => navigate("/register")}>Create Free Account</button>
+            <button className="landing-cta-btn-outline" onClick={() => navigate("/login")}>Browse All Specializations</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(120px,1fr))', gap: 14 }}>
-            {specialties.map((s, i) => (
-              <Link to="/register" key={s.name} style={{ background: '#fff', borderRadius: 18, padding: '22px 12px', textAlign: 'center', textDecoration: 'none', border: '1.5px solid #e2e8f0', transition: 'all .2s', animation: `fadeInUp .5s ease ${i*50}ms both` }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = s.color; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,.09)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, margin: '0 auto 12px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>{s.icon}</div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#334155' }}>{s.name}</div>
-              </Link>
-            ))}
+          <div className="landing-cta-trust">
+            <span>✓ Free to use</span>
+            <span>✓ No credit card required</span>
+            <span>✓ 100% Secure booking</span>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section style={{ padding: '80px 48px', background: '#fff' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 10 }}>HOW IT WORKS</div>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 38, fontWeight: 800, color: '#0f172a', letterSpacing: '-.02em' }}>3 Steps to Your Appointment</h2>
+      {/* ═══ FOOTER ═══ */}
+      <footer className="landing-footer">
+        <div className="landing-footer-inner">
+          <div className="landing-footer-left">
+            © 2024 MediCare+. All rights reserved. | <a href="#privacy">Privacy Policy</a> | <a href="#terms">Terms of Service</a> | Made with <span style={{ color: "#ef4444" }}>❤️</span> for better healthcare
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 40, position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 34, left: '18%', right: '18%', height: 2, background: 'linear-gradient(90deg,#bae6fd,#7dd3fc,#bae6fd)', zIndex: 0 }} />
-            {steps.map((s, i) => (
-              <div key={s.step} style={{ textAlign: 'center', position: 'relative', zIndex: 1, animation: `fadeInUp .6s ease ${i*100}ms both` }}>
-                <div style={{ width: 70, height: 70, borderRadius: '50%', margin: '0 auto 18px', background: 'linear-gradient(135deg,#e0f2fe,#bae6fd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, boxShadow: '0 4px 16px rgba(14,165,233,.18)', border: '3px solid #fff' }}>{s.icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 800, color: '#0ea5e9', letterSpacing: 2, marginBottom: 10 }}>STEP {s.step}</div>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{s.title}</h3>
-                <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.75 }}>{s.desc}</p>
-              </div>
-            ))}
+          <div className="landing-footer-social">
+            <a href="#" aria-label="Facebook">Fb</a>
+            <a href="#" aria-label="Twitter">Tw</a>
+            <a href="#" aria-label="Instagram">Ig</a>
+            <a href="#" aria-label="LinkedIn">In</a>
           </div>
         </div>
-      </section>
-
-      {/* WHY US */}
-      <section style={{ padding: '80px 48px', background: '#f0f9ff' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 36, fontWeight: 800, color: '#0f172a' }}>Why Choose MediBook?</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
-            {[
-              { icon: '✅', t: 'Verified Doctors', d: 'All doctors are background-checked and licensed.' },
-              { icon: '⚡', t: 'Instant Connect',  d: 'Consult in under 5 minutes from anywhere.' },
-              { icon: '🔒', t: '100% Private',     d: 'Your health data is fully encrypted and confidential.' },
-              { icon: '💳', t: 'Easy Payments',    d: 'Pay with UPI, cards, wallets — seamless checkout.' },
-            ].map(f => (
-              <div key={f.t} style={{ background: '#fff', borderRadius: 18, padding: '22px 20px', display: 'flex', gap: 14, alignItems: 'flex-start', border: '1.5px solid #e0f2fe', boxShadow: '0 2px 8px rgba(3,105,161,.06)' }}>
-                <span style={{ fontSize: 26 }}>{f.icon}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>{f.t}</div>
-                  <div style={{ fontSize: 13, color: '#64748b', lineHeight: 1.55 }}>{f.d}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ padding: '80px 48px', textAlign: 'center', background: 'linear-gradient(135deg,#0f172a 0%,#0369a1 100%)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 0%,rgba(14,165,233,.2),transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative' }}>
-          <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 42, fontWeight: 800, color: '#fff', marginBottom: 14, letterSpacing: '-.02em' }}>Your health can't wait.</h2>
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,.75)', marginBottom: 36 }}>Join thousands of patients who trust MediBook for their healthcare.</p>
-          <Link to="/register" style={{ padding: '15px 44px', borderRadius: 14, fontWeight: 700, fontSize: 16, textDecoration: 'none', color: '#0369a1', background: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,.2)', display: 'inline-block', transition: 'all .2s' }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,.3)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,.2)'; }}>
-            Get Started Free →
-          </Link>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ background: '#0f172a', padding: '24px 48px', textAlign: 'center', fontSize: 13, color: '#475569' }}>
-        <span style={{ fontFamily: 'Playfair Display, serif', color: '#fff', fontWeight: 800 }}>MediBook</span>
-        {' '}© {new Date().getFullYear()} · Smart Healthcare Platform · All rights reserved.
       </footer>
     </div>
   );

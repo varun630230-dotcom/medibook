@@ -2,9 +2,9 @@ package com.medibook.model;
 
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,10 +12,13 @@ import java.util.ArrayList;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "doctors")
+@Entity
+@Table(name = "doctors")
+@EntityListeners(AuditingEntityListener.class)
 public class Doctor {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String userId;
@@ -34,21 +37,39 @@ public class Doctor {
     private double rating;
     private int totalReviews;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<String> availableDays = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<TimeSlot> timeSlots = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<String> leaveDates = new ArrayList<>();
     private boolean available = true;
+    private boolean approved = false;
+    private boolean rejected = false;
+    private String rejectionReason;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<String> availableTypes = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<WorkExperience> workExperience = new ArrayList<>();
+    @ElementCollection(fetch = FetchType.LAZY)
+    @OrderColumn(name = "list_idx")
     private List<DocumentRecord> documents = new ArrayList<>();
 
+    @Embeddable
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WorkExperience {
         private String role;
         private String hospital;
+        @Column(name = "start_date")
         private String from;
+        @Column(name = "end_date")
         private String to;
         private String description;
         public String getRole() { return role; }
@@ -63,28 +84,38 @@ public class Doctor {
         public void setDescription(String description) { this.description = description; }
     }
 
+    @Embeddable
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentRecord {
         private String name;
         private String type;
+        @Column(name = "doc_year")
         private String year;
+        
+        @Lob
+        @Column(columnDefinition="LONGTEXT")
+        private String fileData;
+        
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
         public String getYear() { return year; }
         public void setYear(String year) { this.year = year; }
+        public String getFileData() { return fileData; }
+        public void setFileData(String fileData) { this.fileData = fileData; }
     }
 
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Embeddable
     public static class TimeSlot {
         private String startTime;
         private String endTime;
+
+        public TimeSlot() {}
 
         public TimeSlot(String startTime, String endTime) {
             this.startTime = startTime;
@@ -138,6 +169,12 @@ public class Doctor {
     public void setLeaveDates(List<String> leaveDates) { this.leaveDates = leaveDates; }
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+    public boolean isApproved() { return approved; }
+    public void setApproved(boolean approved) { this.approved = approved; }
+    public boolean isRejected() { return rejected; }
+    public void setRejected(boolean rejected) { this.rejected = rejected; }
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -163,44 +200,11 @@ public class Doctor {
         private List<TimeSlot> timeSlots = new ArrayList<>();
         private List<String> leaveDates = new ArrayList<>();
         private boolean available = true;
+        private boolean approved = false;
 
     private List<String> availableTypes = new ArrayList<>();
     private List<WorkExperience> workExperience = new ArrayList<>();
     private List<DocumentRecord> documents = new ArrayList<>();
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class WorkExperience {
-        private String role;
-        private String hospital;
-        private String from;
-        private String to;
-        private String description;
-        public String getRole() { return role; }
-        public void setRole(String role) { this.role = role; }
-        public String getHospital() { return hospital; }
-        public void setHospital(String hospital) { this.hospital = hospital; }
-        public String getFrom() { return from; }
-        public void setFrom(String from) { this.from = from; }
-        public String getTo() { return to; }
-        public void setTo(String to) { this.to = to; }
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-    }
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class DocumentRecord {
-        private String name;
-        private String type;
-        private String year;
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-        public String getYear() { return year; }
-        public void setYear(String year) { this.year = year; }
-    }
         private LocalDateTime createdAt;
 
         public DoctorBuilder id(String id) { this.id = id; return this; }
@@ -223,6 +227,10 @@ public class Doctor {
         public DoctorBuilder timeSlots(List<TimeSlot> timeSlots) { this.timeSlots = timeSlots; return this; }
         public DoctorBuilder leaveDates(List<String> leaveDates) { this.leaveDates = leaveDates; return this; }
         public DoctorBuilder available(boolean available) { this.available = available; return this; }
+        public DoctorBuilder approved(boolean approved) { this.approved = approved; return this; }
+        public DoctorBuilder availableTypes(List<String> availableTypes) { this.availableTypes = availableTypes; return this; }
+        public DoctorBuilder workExperience(List<WorkExperience> workExperience) { this.workExperience = workExperience; return this; }
+        public DoctorBuilder documents(List<DocumentRecord> documents) { this.documents = documents; return this; }
         public DoctorBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public Doctor build() {
@@ -247,9 +255,12 @@ public class Doctor {
             doctor.timeSlots = this.timeSlots;
             doctor.leaveDates = this.leaveDates;
             doctor.available = this.available;
+            doctor.approved = this.approved;
+            doctor.availableTypes = this.availableTypes;
+            doctor.workExperience = this.workExperience;
+            doctor.documents = this.documents;
             doctor.createdAt = this.createdAt;
             return doctor;
         }
     }
 }
-// NOTE: append these fields inside the Doctor class before the closing brace

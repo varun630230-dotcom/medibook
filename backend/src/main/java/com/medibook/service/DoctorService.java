@@ -2,11 +2,13 @@ package com.medibook.service;
 
 import com.medibook.model.Doctor;
 import com.medibook.model.Review;
+import com.medibook.dto.DoctorSummaryDTO;
 import com.medibook.repository.AppointmentRepository;
 import com.medibook.repository.DoctorRepository;
 import com.medibook.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.OptionalDouble;
@@ -19,16 +21,22 @@ public class DoctorService {
     @Autowired private ReviewRepository reviewRepository;
     @Autowired private AppointmentRepository appointmentRepository;
 
-    public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<DoctorSummaryDTO> getAllDoctors() {
+        return doctorRepository.findAll().stream()
+                .map(DoctorSummaryDTO::from)
+                .collect(Collectors.toList());
     }
 
     public List<Doctor> getAvailableDoctors() {
-        return doctorRepository.findByAvailable(true);
+        return doctorRepository.findByAvailable(true).stream()
+                .filter(Doctor::isApproved)
+                .collect(Collectors.toList());
     }
 
     public List<String> getAllSpecialties() {
         return doctorRepository.findAll().stream()
+                .filter(Doctor::isApproved)
                 .filter(d -> d.getSpecialization() != null && !d.getSpecialization().isBlank())
                 .map(Doctor::getSpecialization)
                 .distinct()
@@ -36,10 +44,13 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
-    public List<Doctor> searchDoctors(String query, String specialty, boolean availableOnly) {
-        List<Doctor> all = availableOnly
+    @Transactional(readOnly = true)
+    public List<DoctorSummaryDTO> searchDoctors(String query, String specialty, boolean availableOnly) {
+        List<Doctor> all = (availableOnly
                 ? doctorRepository.findByAvailable(true)
-                : doctorRepository.findAll();
+                : doctorRepository.findAll()).stream()
+                .filter(Doctor::isApproved)
+                .collect(Collectors.toList());
 
         // Filter by specialty
         if (specialty != null && !specialty.isBlank() && !specialty.equalsIgnoreCase("All")) {
@@ -61,7 +72,9 @@ public class DoctorService {
                     .collect(Collectors.toList());
         }
 
-        return all;
+        return all.stream()
+                .map(DoctorSummaryDTO::from)
+                .collect(Collectors.toList());
     }
 
     public Doctor getDoctorById(String id) {
@@ -92,6 +105,18 @@ public class DoctorService {
         if (updatedDoctor.getWorkExperience() != null) doctor.setWorkExperience(updatedDoctor.getWorkExperience());
         if (updatedDoctor.getDocuments() != null) doctor.setDocuments(updatedDoctor.getDocuments());
         if (updatedDoctor.getProfileImage() != null) doctor.setProfileImage(updatedDoctor.getProfileImage());
+        if (updatedDoctor.getPhone() != null) doctor.setPhone(updatedDoctor.getPhone());
+
+        // Any significant profile change should require re-verification
+        if (doctor.isApproved()) {
+            doctor.setApproved(false);
+        }
+        // Clear rejection on profile update so doctor can resubmit
+        if (doctor.isRejected()) {
+            doctor.setRejected(false);
+            doctor.setRejectionReason(null);
+        }
+
         return doctorRepository.save(doctor);
     }
 
@@ -125,6 +150,22 @@ public class DoctorService {
                 .filter(a -> !a.getStatus().equals(com.medibook.model.Appointment.Status.CANCELLED))
                 .map(com.medibook.model.Appointment::getAppointmentTime)
                 .collect(Collectors.toList());
+    }
+
+    public Doctor approveDoctor(String doctorId) {
+        Doctor doctor = getDoctorById(doctorId);
+        doctor.setApproved(true);
+        doctor.setRejected(false);
+        doctor.setRejectionReason(null);
+        return doctorRepository.save(doctor);
+    }
+
+    public Doctor rejectDoctor(String doctorId, String reason) {
+        Doctor doctor = getDoctorById(doctorId);
+        doctor.setApproved(false);
+        doctor.setRejected(true);
+        doctor.setRejectionReason(reason != null ? reason : "Your application did not meet our requirements.");
+        return doctorRepository.save(doctor);
     }
 
     public void deleteDoctor(String doctorId) {

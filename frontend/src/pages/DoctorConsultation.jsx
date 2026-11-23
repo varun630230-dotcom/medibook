@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { doctorAPI } from "../services/api";
+import toast from "react-hot-toast";
 
 const specialties = [
   { icon:"🩺", name:"General Physician", color:"#6366f1" },
@@ -343,10 +344,27 @@ export default function DoctorConsultation() {
   const clearFilters = () => { setSelectedSpecialty("All"); setSelectedType("All"); setSearchInput(""); setSearchQuery(""); setAvailToday(false); setFeeRange("All"); setShowAll(false); };
   const hasFilters = selectedSpecialty !== "All" || selectedType !== "All" || searchQuery || availToday || feeRange !== "All";
 
-  const handleBookClick = doc => {
+  const loadDoctorDetails = async doc => {
+    const { data } = await doctorAPI.getById(doc.id);
+    return data;
+  };
+
+  const openDoctorProfile = async doc => {
+    try {
+      setProfileDoctor(await loadDoctorDetails(doc));
+    } catch {
+      toast.error("Failed to load doctor profile");
+    }
+  };
+
+  const handleBookClick = async doc => {
     if (!user) { navigate("/login"); return; }
-    setProfileDoctor(null);
-    setBookingDoctor(doc);
+    try {
+      setProfileDoctor(null);
+      setBookingDoctor(doc.timeSlots !== undefined ? doc : await loadDoctorDetails(doc));
+    } catch {
+      toast.error("Failed to load doctor booking details");
+    }
   };
 
   return (
@@ -521,14 +539,14 @@ export default function DoctorConsultation() {
                   return (
                     <div key={doc.id} className="doc-card" style={{background:"#fff",borderRadius:16,padding:18,boxShadow:"0 2px 10px rgba(0,0,0,.05)",border:"1px solid #f1f5f9",display:"flex",gap:14,alignItems:"flex-start",transition:"all .2s",animationDelay:`${i*0.04}s`,cursor:"default"}}>
                       {/* Photo */}
-                      <div onClick={()=>setProfileDoctor(doc)} style={{width:72,height:72,borderRadius:16,background:"linear-gradient(135deg,#e0f2fe,#bae6fd)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,border:"2px solid #e0f2fe",flexShrink:0,overflow:"hidden",cursor:"pointer"}}>
+                      <div onClick={()=>openDoctorProfile(doc)} style={{width:72,height:72,borderRadius:16,background:"linear-gradient(135deg,#e0f2fe,#bae6fd)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,border:"2px solid #e0f2fe",flexShrink:0,overflow:"hidden",cursor:"pointer"}}>
                         {doc.profileImage ? <img src={doc.profileImage} alt={doc.firstName} style={{width:"100%",height:"100%",objectFit:"cover"}} /> : "👨‍⚕️"}
                       </div>
                       <div style={{flex:1}}>
                         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
                           <div>
                             <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:2}}>
-                              <h3 onClick={()=>setProfileDoctor(doc)} style={{fontSize:15,fontWeight:700,color:"#0f172a",cursor:"pointer",textDecoration:"none"}} onMouseEnter={e=>e.currentTarget.style.color="#0ea5e9"} onMouseLeave={e=>e.currentTarget.style.color="#0f172a"}>
+                              <h3 onClick={()=>openDoctorProfile(doc)} style={{fontSize:15,fontWeight:700,color:"#0f172a",cursor:"pointer",textDecoration:"none"}} onMouseEnter={e=>e.currentTarget.style.color="#0ea5e9"} onMouseLeave={e=>e.currentTarget.style.color="#0f172a"}>
                                 Dr. {doc.firstName} {doc.lastName}
                               </h3>
                               <span style={{background:"#dcfce7",color:"#16a34a",fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20}}>✓ Verified</span>
@@ -558,7 +576,7 @@ export default function DoctorConsultation() {
                             ))}
                           </div>
                           <div style={{display:"flex",gap:8}}>
-                            <button onClick={()=>setProfileDoctor(doc)} style={{padding:"8px 14px",borderRadius:10,border:"1.5px solid #e2e8f0",background:"#f8fafc",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12.5,color:"#374151",cursor:"pointer",transition:"all .15s"}}
+                            <button onClick={()=>openDoctorProfile(doc)} style={{padding:"8px 14px",borderRadius:10,border:"1.5px solid #e2e8f0",background:"#f8fafc",fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:12.5,color:"#374151",cursor:"pointer",transition:"all .15s"}}
                               onMouseEnter={e=>{e.currentTarget.style.borderColor="#0ea5e9";e.currentTarget.style.color="#0369a1";}}
                               onMouseLeave={e=>{e.currentTarget.style.borderColor="#e2e8f0";e.currentTarget.style.color="#374151";}}>
                               View Profile

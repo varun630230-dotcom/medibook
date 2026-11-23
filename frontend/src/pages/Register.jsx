@@ -12,7 +12,7 @@ function PasswordStrength({ pwd }) {
   return (
     <div style={{ marginTop: 6 }}>
       <div style={{ display: 'flex', gap: 3 }}>
-        {[1,2,3,4,5].map(i => <div key={i} style={{ flex:1, height:3, borderRadius:2, background: i<=score ? colors[score] : '#e2e8f0', transition:'background .3s' }} />)}
+        {[1,2,3,4,5].map(i => <div key={i} style={{ flex:1, height:4, borderRadius:2, background: i<=score ? colors[score] : '#e2e8f0', transition:'background .3s' }} />)}
       </div>
       <span style={{ fontSize: 11, color: colors[score], fontWeight: 700, marginTop: 4, display: 'block' }}>{labels[score]}</span>
     </div>
@@ -40,90 +40,104 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 520, animation: 'fadeInUp .4s ease' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, textDecoration: 'none', marginBottom: 24 }}>
-            <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, #0ea5e9, #0369a1)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>🏥</div>
-            <span style={{ fontFamily: 'Fraunces, serif', fontWeight: 900, fontSize: 22, color: '#0f172a' }}>MediBook</span>
+    <div className="auth-container">
+      {/* Left Form Panel */}
+      <div className="auth-left">
+        <div className="auth-form-wrapper" style={{ maxWidth: 480 }}>
+          <Link to="/" className="auth-logo">
+            <div className="logo-icon">+</div>
+            <span>MediBook</span>
           </Link>
-          <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 28, fontWeight: 900, color: '#0f172a', marginBottom: 6 }}>Create your account</h1>
-          <p style={{ color: '#64748b', fontSize: 14 }}>Join MediBook — it's free</p>
-        </div>
 
-        <div className="card" style={{ padding: 32, borderRadius: 24 }}>
-          {/* Role toggle */}
-          <div style={{ display: 'flex', gap: 0, marginBottom: 28, background: '#f1f5f9', borderRadius: 12, padding: 4 }}>
-            {[{r:'PATIENT', icon:'🤒', label:'I\'m a Patient'}, {r:'DOCTOR', icon:'👨‍⚕️', label:'I\'m a Doctor'}].map(({r,icon,label}) => (
-              <button key={r} onClick={() => setForm(p=>({...p, role:r}))} style={{
-                flex:1, padding:'10px', borderRadius:10, border:'none', cursor:'pointer',
-                background: form.role===r ? '#fff' : 'transparent',
-                color: form.role===r ? '#0369a1' : '#64748b',
-                fontWeight: form.role===r ? 700 : 500, fontSize:13,
-                boxShadow: form.role===r ? '0 1px 6px rgba(0,0,0,.12)' : 'none',
-                transition:'all .2s', fontFamily:'Plus Jakarta Sans, sans-serif',
-                display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-              }}>{icon} {label}</button>
-            ))}
+          <div className="auth-header">
+            <h1>Create your account</h1>
+            <p>Join MediBook — it's free</p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-              {[{n:'firstName',label:'First Name',ph:'John'},{n:'lastName',label:'Last Name',ph:'Doe'}].map(f => (
-                <div key={f.n} className="form-group">
-                  <label className="form-label">{f.label} *</label>
-                  <input name={f.n} placeholder={f.ph} value={form[f.n]} onChange={ch} className="form-input" required style={{background:'#fafafa'}} />
-                </div>
-              ))}
+          {/* Role Toggle */}
+          <div className="auth-role-toggle">
+            <button 
+              type="button"
+              className={form.role === 'PATIENT' ? 'active' : ''} 
+              onClick={() => setForm(p => ({...p, role: 'PATIENT'}))}
+            >
+              <span className="icon">🤒</span> Patient
+            </button>
+            <button 
+              type="button"
+              className={form.role === 'DOCTOR' ? 'active' : ''} 
+              onClick={() => setForm(p => ({...p, role: 'DOCTOR'}))}
+            >
+              <span className="icon">👨‍⚕️</span> Doctor
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="auth-form" style={{ gap: 12 }}>
+            <div className="auth-grid">
+              <div className="input-group">
+                <span className="input-icon">👤</span>
+                <input name="firstName" placeholder="First Name *" value={form.firstName} onChange={ch} required />
+              </div>
+              <div className="input-group">
+                <span className="input-icon">👤</span>
+                <input name="lastName" placeholder="Last Name *" value={form.lastName} onChange={ch} required />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Email Address *</label>
-              <input type="email" name="email" placeholder="you@email.com" value={form.email} onChange={ch} className="form-input" required style={{background:'#fafafa'}} autoComplete="email" />
+            <div className="input-group">
+              <span className="input-icon">✉️</span>
+              <input type="email" name="email" placeholder="Email Address *" value={form.email} onChange={ch} required autoComplete="email" />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Password *</label>
-              <div style={{ position:'relative' }}>
-                <input type={showPwd?'text':'password'} name="password" placeholder="Min. 6 characters" value={form.password} onChange={ch} className="form-input" required style={{paddingRight:44,background:'#fafafa'}} autoComplete="new-password" />
-                <button type="button" onClick={()=>setShowPwd(!showPwd)} style={{ position:'absolute', right:12, top:11, background:'none', border:'none', cursor:'pointer', fontSize:17, color:'#94a3b8', padding:0 }}>
-                  {showPwd?'🙈':'👁️'}
+            <div className="input-group" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <span className="input-icon" style={{ top: 15 }}>🔒</span>
+                <input type={showPwd ? 'text' : 'password'} name="password" placeholder="Password (Min. 6 characters) *" value={form.password} onChange={ch} required autoComplete="new-password" style={{ paddingRight: 40 }} />
+                <button type="button" onClick={() => setShowPwd(!showPwd)} style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#94a3b8'
+                }}>
+                  {showPwd ? '🙈' : '👁️'}
                 </button>
               </div>
               <PasswordStrength pwd={form.password} />
             </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-              <div className="form-group">
-                <label className="form-label">Phone</label>
-                <input name="phone" placeholder="+91 98765 43210" value={form.phone} onChange={ch} className="form-input" style={{background:'#fafafa'}} />
+            <div className="auth-grid">
+              <div className="input-group">
+                <span className="input-icon">📞</span>
+                <input name="phone" placeholder="Phone Number" value={form.phone} onChange={ch} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Gender</label>
-                <select name="gender" value={form.gender} onChange={ch} className="form-input" style={{background:'#fafafa'}}>
-                  <option value="">Select</option>
-                  <option>Male</option><option>Female</option><option>Other</option>
+              <div className="input-group">
+                <span className="input-icon">⚧️</span>
+                <select name="gender" value={form.gender} onChange={ch}>
+                  <option value="">Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Date of Birth</label>
-              <input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={ch} className="form-input" style={{background:'#fafafa'}} max={new Date().toISOString().split('T')[0]} />
+            <div className="input-group">
+              <span className="input-icon">🎂</span>
+              <input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={ch} max={new Date().toISOString().split('T')[0]} />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ height:48, fontSize:15, marginTop:4 }}>
-              {loading ? <><span className="spinner" style={{width:18,height:18,borderWidth:2}} /> Creating Account...</> : `Create ${form.role==='DOCTOR'?'Doctor':'Patient'} Account →`}
-            </button>
+            <div className="auth-actions" style={{ marginTop: 16 }}>
+              <button type="submit" className="btn-login" disabled={loading} style={{ width: '100%' }}>
+                {loading ? 'Creating...' : `Create ${form.role==='DOCTOR' ? 'Doctor' : 'Patient'} Account`}
+              </button>
+            </div>
           </form>
-        </div>
 
-        <p style={{ textAlign:'center', marginTop:20, fontSize:14, color:'#64748b' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color:'#0369a1', fontWeight:700, textDecoration:'none' }}>Sign in</Link>
-        </p>
+          <p className="auth-footer">
+            Already have an account? <Link to="/login">Sign in ↗</Link>
+          </p>
+        </div>
       </div>
+
+
     </div>
   );
 }
